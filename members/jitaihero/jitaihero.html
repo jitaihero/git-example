@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博士的个人终端</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #f0f0f0;
+            --text-muted: #888;
+            --accent: #e5c158; /* 银灰的主题色 */
+            --border: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            /* 模拟明日方舟 Logo 风格的斜向背景纹理 */
+            background-image: 
+                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
+                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-color: #1a1a1a;
+        }
+
+        /* 整体布局 */
+        #app {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 80px;
+            background: rgba(0, 0, 0, 0.7);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            z-index: 10;
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: 0.2s;
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+        }
+
+        .nav-icon:hover, .nav-icon.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #2a2a2a;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            position: relative;
+            padding: 40px;
+        }
+
+        /* 顶部标题栏 */
+        .top-bar {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        
+        .top-bar h1 {
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        /* 页面面板基础样式 */
+        .page {
+            display: none;
+            height: 100%;
+            padding-top: 60px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 首页布局 */
+        .home-layout {
+            display: flex;
+            height: 100%;
+            align-items: flex-end;
+            padding-bottom: 50px;
+        }
+
+        /* 助理区域 */
+        .assistant-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 简笔画小人 */
+        .stick-figure {
+            width: 150px;
+            height: 200px;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stick-figure .head {
+            width: 90px;
+            height: 90px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 30px;
+            border: 3px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        .stick-figure .body {
+            width: 4px;
+            height: 60px;
+            background: #333;
+            position: absolute;
+            top: 90px;
+            left: 73px;
+        }
+
+        .stick-figure .arms {
+            width: 80px;
+            height: 40px;
+            border-bottom: 4px solid #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 100px;
+            left: 35px;
+        }
+
+        .stick-figure .legs {
+            width: 60px;
+            height: 50px;
+            border-bottom: 4px solid #333;
+            border-radius: 0 0 50% 50%;
+            position: absolute;
+            top: 145px;
+            left: 45px;
+        }
+
+        /* 右侧主菜单 */
+        .menu-area {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 15px 20px;
+            font-size: 18px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            padding-left: 30px; /* 悬停动效 */
+        }
+
+        /* 个人档案页 */
+        .archive-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(30, 30, 30, 0.9);
+            border: 1px solid var(--border);
+            padding: 30px;
+            clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+        }
+
+        .archive-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .archive-header h2 {
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .archive-header .class {
+            color: var(--text-muted);
+            font-size: 16px;
+            align-self: flex-end;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: #111;
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+        .stat-box .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .bio-text {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #ccc;
+            background: #111;
+            padding: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        /* 任务页面 */
+        .todo-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(30, 30, 30, 0.9);
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .todo-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .todo-input-group input {
+            flex: 1;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            outline: none;
+        }
+
+        .todo-input-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .todo-input-group button {
+            padding: 0 20px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            background: #111;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .todo-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .todo-item input[type="checkbox"] {
+            margin-right: 15px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff5555;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 5px;
+        }
+
+        .delete-btn:hover { color: #ff0000; }
+
+        /* 尚未完善页面 */
+        .not-ready {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 24px;
+            color: var(--text-muted);
+            letter-spacing: 4px;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 20;
+        }
+        .back-btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        /* 隐藏帮助类 */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <div class="nav-icon active" onclick="switchPage('home', this)">主页</div>
+        <div class="nav-icon" onclick="switchPage('archive', this)">干员</div>
+        <div class="nav-icon" onclick="switchPage('todo', this)">任务</div>
+        <div class="nav-icon" onclick="switchPage('shop', this)">商店</div>
+        <div class="nav-icon" onclick="switchPage('gacha', this)">寻访</div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 返回按钮 (在非主页显示) -->
+        <button class="back-btn hidden" id="backBtn" onclick="goHome()">返回主页</button>
+
+        <!-- 页面 1：主页 -->
+        <div id="page-home" class="page active">
+            <div class="top-bar">
+                <h1>R.I. TERMINAL</h1>
+                <span style="color: var(--text-muted)">终端已连接</span>
+            </div>
+            
+            <div class="home-layout">
+                <!-- 博士简笔画 -->
+                <div class="assistant-area">
+                    <div class="stick-figure">
+                        <div class="head">博士</div>
+                        <div class="body"></div>
+                        <div class="arms"></div>
+                        <div class="legs"></div>
+                    </div>
+                </div>
+
+                <!-- 菜单 -->
+                <div class="menu-area">
+                    <button class="menu-btn" onclick="switchPage('archive')">干员个人档案</button>
+                    <button class="menu-btn" onclick="switchPage('todo')">每日任务交接</button>
+                    <button class="menu-btn" onclick="switchPage('shop')">采购中心</button>
+                    <button class="menu-btn" onclick="switchPage('gacha')">干员寻访</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面 2：个人档案 -->
+        <div id="page-archive" class="page">
+            <div class="archive-container">
+                <div class="archive-header">
+                    <h2>计科4263黄楚烽</h2>
+                    <span class="class">近卫干员 / 银灰 (SilverAsh)</span>
+                </div>
+                
+                <!-- 银灰的满级面板属性 -->
+                <div class="stats-grid">
+                    <div class="stat-box"><div class="label">生命上限</div><div class="value">2560</div></div>
+                    <div class="stat-box"><div class="label">攻击</div><div class="value">763</div></div>
+                    <div class="stat-box"><div class="label">防御</div><div class="value">393</div></div>
+                    <div class="stat-box"><div class="label">法术抗性</div><div class="value">10</div></div>
+                    <div class="stat-box"><div class="label">部署费用</div><div class="value">20</div></div>
+                    <div class="stat-box"><div class="label">阻挡数</div><div class="value">2</div></div>
+                    <div class="stat-box"><div class="label">攻击间隔</div><div class="value">1.3s</div></div>
+                    <div class="stat-box"><div class="label">再部署</div><div class="value">70s</div></div>
+                </div>
+
+                <div class="bio-text">
+                    嵌入式方向，喜欢巧妙的思维，希望有一天直接也能产生一些自己的思维。<br><br>
+                    擅长弹吉他，目标是成为吉他英雄。
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面 3：每日任务 -->
+        <div id="page-todo" class="page">
+            <div class="todo-container">
+                <h2 style="margin-bottom: 20px; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px;">今日工作安排</h2>
+                
+                <div class="todo-input-group">
+                    <input type="text" id="taskInput" placeholder="输入今日待办任务（按回车添加）..." onkeypress="handleEnter(event)">
+                    <button onclick="addTask()">添加</button>
+                </div>
+
+                <ul class="todo-list" id="taskList">
+                    <!-- 任务列表由 JS 动态生成 -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- 页面 4：未完善功能 (如商店) -->
+        <div id="page-shop" class="page">
+            <div class="not-ready">该功能尚未完善，请等待后续版本更新...</div>
+        </div>
+        
+        <!-- 页面 5：未完善功能 (如寻访) -->
+        <div id="page-gacha" class="page">
+            <div class="not-ready">该功能尚未完善，请等待后续版本更新...</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 页面切换逻辑
+    function switchPage(pageId, navElement = null) {
+        // 隐藏所有页面
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        // 显示目标页面
+        const targetPage = document.getElementById('page-' + pageId);
+        if (targetPage) {
+            targetPage.classList.add('active');
+        }
+
+        // 处理导航图标的高亮
+        if (navElement) {
+            document.querySelectorAll('.nav-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            navElement.classList.add('active');
+        }
+
+        // 如果不是主页，显示返回按钮
+        const backBtn = document.getElementById('backBtn');
+        if (pageId === 'home') {
+            backBtn.classList.add('hidden');
+        } else {
+            backBtn.classList.remove('hidden');
+        }
+    }
+
+    // 返回主页逻辑
+    function goHome() {
+        switchPage('home');
+        // 重置左侧导航高亮为主页
+        const navIcons = document.querySelectorAll('.nav-icon');
+        if(navIcons.length > 0) {
+            navIcons.forEach(icon => icon.classList.remove('active'));
+            navIcons[0].classList.add('active');
+        }
+    }
+
+    // ================= 任务系统逻辑 (localStorage) =================
+    let tasks = JSON.parse(localStorage.getItem('doctor_tasks')) || [];
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+        
+        tasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${task.completed ? 'completed' : ''}`;
+            
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
+                <span class="task-text">${task.text}</span>
+                <button class="delete-btn" onclick="deleteTask(${index})">✖</button>
+            `;
+            list.appendChild(li);
+        });
+        
+        // 保存到 localStorage
+        localStorage.setItem('doctor_tasks', JSON.stringify(tasks));
+    }
+
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        if (text) {
+            tasks.push({ text: text, completed: false });
+            input.value = '';
+            renderTasks();
+        }
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            addTask();
+        }
+    }
+
+    function toggleTask(index) {
+        tasks[index].completed = !tasks[index].completed;
+        renderTasks();
+    }
+
+    function deleteTask(index) {
+        tasks.splice(index, 1);
+        renderTasks();
+    }
+
+    // 初始化渲染任务
+    renderTasks();
+</script>
+
+</body>
+</html>
